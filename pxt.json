@@ -1,0 +1,64 @@
+{
+    "name": "platformerjavatest ",
+    "description": "",
+    "dependencies": {
+        "device": "*",
+        "DeltaTime Extension": "github:kiwiphoenix364/pxt-deltatime#v2.0.0",
+        "pxt-arcade-vector-math": "github:robo-technical-group/pxt-arcade-vector-math#v1.0.7",
+        "Timers": "github:microsoft/arcade-timers#v1.1.0",
+        "arcade-sprite-util": "github:jwunderl/arcade-sprite-util#v0.4.1",
+        "arcade-text": "github:microsoft/arcade-text#v1.3.0",
+        "arcade-character-animations": "github:microsoft/arcade-character-animations#v0.0.2",
+        "sprite-scaling": "*",
+        "Extra Effects": "github:alexszeto/extra-effects#v3.1.0",
+        "pxt-camera-scroll": "github:Blobbey2000/pxt-camera-scroll#v3.7.4",
+        "pxt-arcade-image-transform": "github:robo-technical-group/pxt-arcade-image-transform#v1.0.9",
+        "arcade-tile-util": "github:microsoft/arcade-tile-util#v1.1.0",
+        "arcade-screen-transitions": "github:riknoll/arcade-screen-transitions#v0.0.5",
+        "Color Fading": "github:jwunderl/pxt-color#v0.2.3"
+    },
+    "files": [
+        "main.ts",
+        "README.md",
+        "assets.json",
+        "images.g.jres",
+        "images.g.ts",
+        "tilemap.g.jres",
+        "tilemap.g.ts",
+        "linear_interpolation.ts"
+    ],
+    "testFiles": [
+        "test.ts"
+    ],
+    "targetVersions": {
+        "branch": "v1.12.47",
+        "tag": "v1.12.47",
+        "commits": "https://github.com/microsoft/pxt-arcade/commits/0da32d00b71ad17bdde6e0defc054446e17ad4e1",
+        "target": "1.12.49",
+        "pxt": "8.5.59",
+        "targetId": "arcade"
+    },
+    "supportedTargets": [
+        "arcade"
+    ],
+    "preferredEditor": "tsprj",
+    "languageRestriction": "javascript-only",
+    "palette": [
+        "#000000",
+        "#F0F6F0",
+        "#B13E53",
+        "#FF4ADC",
+        "#FFA200",
+        "#FFE74C",
+        "#00CF2D",
+        "#48FF00",
+        "#1629F7",
+        "#73EFF7",
+        "#8E1CC7",
+        "#8767BD",
+        "#5F4886",
+        "#EBFFD4",
+        "#7A3B21",
+        "#272946"
+    ]
+}
