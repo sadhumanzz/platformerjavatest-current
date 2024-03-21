@@ -1,14 +1,15 @@
 // BASIC INITS
-let playerController = sprites.create(assets.image`myImage1`, SpriteKind.Player)
+let playerController = sprites.create(assets.image`PlayerSprite`, SpriteKind.Player)
 let cameraController = sprites.create(assets.image`cameraSprite`, SpriteKind.CameraSprite)
 
 playerController.z = 300
 
-tiles.setCurrentTilemap(tilemap`level2`)
+tiles.setCurrentTilemap(tilemap`level0`)
 scene.setBackgroundColor(15)
 
-let levelSet = [tilemap`level0`,
-tilemap`level2`]
+let levelSet =[tilemap`level0`,
+tilemap`level1`]
+let nextLevel: number = 0
 
 let ppu = 16
 
@@ -28,121 +29,34 @@ let jumping: boolean = false
 let falling: boolean = false
 
 let maxSpeed: number = (18 * ppu) * deltaTime
-let minSpeed: number = (5.7 * ppu) * deltaTime
-
+let minSpeed: number = (6.5 * ppu) * deltaTime
+//5.7 min
 let playerFriction: number = maxSpeed / 1.2
 let playerAirFriction: number = maxSpeed / 2
 
-let playerDied: boolean = false
+let playerImmobile: boolean = false
 
 let cameraTransitioning: boolean = false
 
 cameraController.setFlag(SpriteFlag.Invisible, true)
 scene.cameraFollowSprite(cameraController)
 
+initLevel()
+
+console.log(cameraController.x)
+console.log(cameraController.y)
+
 namespace SpriteKind {
     export const StationaryProjectileEnemy = SpriteKind.create()
     export const DirectionalProjectileEnemy = SpriteKind.create()
+    export const MovingProjectileEnemy = SpriteKind.create()
+    export const MovingMeleeEnemy = SpriteKind.create()
     export const CameraSprite = SpriteKind.create()
 }
 
 //https://forum.makecode.com/t/extension-arcade-screen-transitions/23834
 //https://arcade.makecode.com/S24496-97237-56961-49632
 //https://arcade.makecode.com/S04393-06456-09228-87946
-
-tileUtil.createSpritesOnTiles(img`
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . 4 4 . . . . . . .
-    . . . . . . . 4 4 . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-`, img`
-    ................................
-    ................................
-    ................................
-    ................................
-    ...............11...............
-    ...............11...............
-    ..............1241..............
-    ..............1241..............
-    ........111..122441..111........
-    ........14411ffffff11441........
-    ........12244ffffff24441........
-    .........122ffffff5f241.........
-    .........12ffffffff5f21.........
-    ........1ffffff11ffffff1........
-    ......114fffff1441fffff411......
-    ....11444ffff124441ffff44411....
-    ....11222ffff122441ffff22211....
-    ......112fffff1221fffff211......
-    ........1ffffff11ffffff1........
-    .........14ffffffffff41.........
-    .........144ffffffff441.........
-    ........14422ffffff22441........
-    ........14211ffffff11241........
-    ........111..122441..111........
-    ..............1241..............
-    ..............1241..............
-    ...............11...............
-    ...............11...............
-    ................................
-    ................................
-    ................................
-    ................................
-`, SpriteKind.Enemy)
-
-tileUtil.createSpritesOnTiles(assets.image`myImage2`,
-    img`
-        . . . . . . 1 1 1 1 1 . . . . . .
-        . . . . 1 1 f f f f f 1 1 . . . .
-        . . . 1 f f f f f f f f f 1 . . .
-        . . 1 f f f f f f f f f f f 1 . .
-        . 1 f f f f 1 1 1 1 1 f f f f 1 .
-        . 1 f f f 1 1 1 1 1 1 1 f f f 1 .
-        1 f f f 2 1 1 1 1 1 1 1 2 f f f 1
-        1 f f f 2 f f 1 1 1 f f 2 f f f 1
-        1 f f f f f 2 f 1 f 2 f f f f f 1
-        2 f f f f 1 f f 1 f f 1 f f f f 2
-        1 f f f 1 f f 1 1 1 f f 1 f f f 1
-        . 2 f f f 2 1 1 1 1 1 2 f f f 2 .
-        . 2 f f f f 1 f 1 f 1 f f f f 2 .
-        . . 2 f f f f f f f f f f f 2 . .
-        . . . 2 f f f f f f f f f 2 . . .
-        . . . . 2 2 f f f f f 2 2 . . . .
-        . . . . . . 2 2 2 2 2 . . . . . .
-    `, SpriteKind.StationaryProjectileEnemy)
-
-tileUtil.createSpritesOnTiles(assets.image`myImage4`,
-    img`
-        . . . . . . 1 1 1 1 1 . . . . . .
-        . . . . 1 1 f f f f f 1 1 . . . .
-        . . . 1 f f f f f f f f f 1 . . .
-        . . 1 f f f f f f f f f f f 1 . .
-        . 1 f f f f 1 1 1 1 1 f f f f 1 .
-        . 1 f f f 1 1 1 1 1 1 1 f f f 1 .
-        1 f f f 2 1 1 1 1 1 1 1 2 f f f 1
-        1 f f f 2 f f 1 1 1 f f 2 f f f 1
-        1 f f f f f 2 f 1 f 2 f f f f f 1
-        2 f f f f 1 f f 1 f f 1 f f f f 2
-        1 f f f 1 f f 1 1 1 f f 1 f f f 1
-        . 2 f f f 2 1 1 1 1 1 2 f f f 2 .
-        . 2 f f f f 1 f 1 f 1 f f f f 2 .
-        . . 2 f f f f f f f f f f f 2 . .
-        . . . 2 f f f f f f f f f 2 . . .
-        . . . . 2 2 f f f f f 2 2 . . . .
-        . . . . . . 2 2 2 2 2 . . . . . .
-    `, SpriteKind.StationaryProjectileEnemy)
 
 sprites.onCreated(SpriteKind.Player, function (sprite: Sprite) {
 
@@ -191,608 +105,21 @@ game.onUpdate(function () {
     }
 
     //control movement
-    if (!playerDied) {
-        if (controller.left.isPressed() || controller.right.isPressed()) {
-            (playerController.vx = minSpeed * Math.sign(controller.player1.dx())) * Delta.DELTA()
-        } else {
-            (playerController.ax = maxSpeed * Math.sign(controller.player1.dx())) * Delta.DELTA()
-        }
-
+    if (!playerImmobile) {
+            if (controller.left.isPressed() || controller.right.isPressed()) {
+                (playerController.vx = minSpeed * Math.sign(controller.player1.dx())) * Delta.DELTA()
+            } else {
+                (playerController.ax = maxSpeed * Math.sign(controller.player1.dx())) * Delta.DELTA()
+            }
         //jump queue
         jumpPressedRemember -= deltaTime
         if (controller.up.isPressed()) {
             jumpPressedRemember = jumpPressedRememberTime
         }
     }
+
     //animate player
-
-
-    //environment interaction
-    if (!controller.player1.isPressed(ControllerButton.Down)) {
-        if (playerController.vy >= 0) {
-            if (playerController.tileKindAt(TileDirection.Bottom, img`
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                f f f f f f f f f f f f f f f f
-                f f f f f f f f f f f f f f f f
-                f f f f f f f f f f f f f f f f
-                f f f f f f f f f f f f f f f f
-                f f f f f f f f f f f f f f f f
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-            `)) {
-                tileUtil.setWalls(img`
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    f f f f f f f f f f f f f f f f
-                    f f f f f f f f f f f f f f f f
-                    f f f f f f f f f f f f f f f f
-                    f f f f f f f f f f f f f f f f
-                    f f f f f f f f f f f f f f f f
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                `, true)
-            } else {
-                tileUtil.setWalls(img`
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    f f f f f f f f f f f f f f f f
-                    f f f f f f f f f f f f f f f f
-                    f f f f f f f f f f f f f f f f
-                    f f f f f f f f f f f f f f f f
-                    f f f f f f f f f f f f f f f f
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                `, false)
-            }
-        } else {
-            tileUtil.setWalls(img`
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                f f f f f f f f f f f f f f f f
-                f f f f f f f f f f f f f f f f
-                f f f f f f f f f f f f f f f f
-                f f f f f f f f f f f f f f f f
-                f f f f f f f f f f f f f f f f
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-            `, false)
-        }
-    } else {
-        tileUtil.setWalls(img`
-            1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-            1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            f f f f f f f f f f f f f f f f
-            1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-            1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-        `, false)
-    }
-
-    if (!controller.player1.isPressed(ControllerButton.Down)) {
-        if (playerController.vy >= 0) {
-            if (playerController.tileKindAt(TileDirection.Bottom, img`
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 f f f f f f f f f f f f f f
-                1 1 f f f f f f f f f f f f f f
-                1 1 f f f f f f f f f f f f f f
-                1 1 f f f f f f f f f f f f f f
-                1 1 f f f f f f f f f f f f f f
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-            `)) {
-                tileUtil.setWalls(img`
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 f f f f f f f f f f f f f f
-                    1 1 f f f f f f f f f f f f f f
-                    1 1 f f f f f f f f f f f f f f
-                    1 1 f f f f f f f f f f f f f f
-                    1 1 f f f f f f f f f f f f f f
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                `, true)
-            } else {
-                tileUtil.setWalls(img`
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 f f f f f f f f f f f f f f
-                    1 1 f f f f f f f f f f f f f f
-                    1 1 f f f f f f f f f f f f f f
-                    1 1 f f f f f f f f f f f f f f
-                    1 1 f f f f f f f f f f f f f f
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                `, false)
-            }
-        } else {
-            tileUtil.setWalls(img`
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 f f f f f f f f f f f f f f
-                1 1 f f f f f f f f f f f f f f
-                1 1 f f f f f f f f f f f f f f
-                1 1 f f f f f f f f f f f f f f
-                1 1 f f f f f f f f f f f f f f
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-            `, false)
-        }
-    } else {
-        tileUtil.setWalls(img`
-            1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-            1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-            1 1 f f f f f f f f f f f f f f
-            1 1 f f f f f f f f f f f f f f
-            1 1 f f f f f f f f f f f f f f
-            1 1 f f f f f f f f f f f f f f
-            1 1 f f f f f f f f f f f f f f
-            1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-            1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-        `, false)
-    }
-
-    if (!controller.player1.isPressed(ControllerButton.Down)) {
-        if (playerController.vy >= 0) {
-            if (playerController.tileKindAt(TileDirection.Bottom, img`
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                f f f f f f f f f f f f f f 1 1
-                f f f f f f f f f f f f f f 1 1
-                f f f f f f f f f f f f f f 1 1
-                f f f f f f f f f f f f f f 1 1
-                f f f f f f f f f f f f f f 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-            `)) {
-                tileUtil.setWalls(img`
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    f f f f f f f f f f f f f f 1 1
-                    f f f f f f f f f f f f f f 1 1
-                    f f f f f f f f f f f f f f 1 1
-                    f f f f f f f f f f f f f f 1 1
-                    f f f f f f f f f f f f f f 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                `, true)
-            } else {
-                tileUtil.setWalls(img`
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    f f f f f f f f f f f f f f 1 1
-                    f f f f f f f f f f f f f f 1 1
-                    f f f f f f f f f f f f f f 1 1
-                    f f f f f f f f f f f f f f 1 1
-                    f f f f f f f f f f f f f f 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                `, false)
-            }
-        } else {
-            tileUtil.setWalls(img`
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                f f f f f f f f f f f f f f 1 1
-                f f f f f f f f f f f f f f 1 1
-                f f f f f f f f f f f f f f 1 1
-                f f f f f f f f f f f f f f 1 1
-                f f f f f f f f f f f f f f 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-                . . . . . . . . . . . . . . . .
-            `, false)
-        }
-    } else {
-        tileUtil.setWalls(img`
-            1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-            1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-            f f f f f f f f f f f f f f 1 1
-            f f f f f f f f f f f f f f 1 1
-            f f f f f f f f f f f f f f 1 1
-            f f f f f f f f f f f f f f 1 1
-            f f f f f f f f f f f f f f 1 1
-            1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-            1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-        `, false)
-    }
-    //camera control
-
-    if (!playerDied) {
-
-        timer.throttle("camTransition", 500, function() {
-            if (playerController.x > cameraController.right) {
-                let currentPosX: number = cameraController.x
-                let targetPosX: number = currentPosX + (screen.width)
-                spriteutils.moveTo(cameraController, spriteutils.pos(targetPosX, cameraController.y), 500)
-
-            } else if (playerController.x < cameraController.left) {
-                let currentPosX: number = cameraController.x
-                let targetPosX: number = currentPosX - (screen.width)
-                spriteutils.moveTo(cameraController, spriteutils.pos(targetPosX, cameraController.y), 500)
-            }
-        })
-        cameraController.y = playerController.y
-
-    }
-
-
-})
-
-game.onUpdateInterval(50, function () {
-
-    if (!playerController.isHittingTile(CollisionDirection.Bottom)) {
-
-
-        if (playerController.vy > 0) {
-            jumping = true
-            falling = false
-        } else if (playerController.vy < 0) {
-            jumping = false
-            falling = true
-        } else if (playerController.vy == 0) {
-            jumping = false
-            falling = false
-        }
-
-    }
-
-    if (!jumping && falling && (playerController.vx != 0)) {
-        characterAnimations.runFrames(playerController, [img`
-            ................
-            ................
-            ................
-            ................
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            ....11111111....
-            f...11111111...f
-        `, img`
-            ................
-            ................
-            ................
-            ................
-            ................
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            f..1111111111..f
-        `, img`
-            ................
-            ................
-            ................
-            ................
-            ................
-            ................
-            ..111111111111..
-            ..111111111111..
-            ..111111111111..
-            ..111111111111..
-            ..111111111111..
-            ..111111111111..
-            ..111111111111..
-            ..111111111111..
-            ..111111111111..
-            ..111111111111..
-            ..111111111111..
-            ..111111111111..
-            ..111111111111..
-            f.111111111111.f
-        `, img`
-            ................
-            ................
-            ................
-            ................
-            ................
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            ...1111111111...
-            f..1111111111..f
-        `, img`
-        ................
-        ................
-        ................
-        ................
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        ....11111111....
-        f...11111111...f
-    ` ], 50, characterAnimations.rule(Predicate.HittingWallDown))
-
-    }
-
-    if (!playerDied) {
-        for (let value of sprites.allOfKind(SpriteKind.StationaryProjectileEnemy)) {
-
-            if (spriteutils.distanceBetween(value, playerController) < 80) {
-
-                timer.throttle("StationaryProjectileEnemy_Fire", 2000, function () {
-                    let enemy_projectile = sprites.createProjectileFromSprite(img`
-                        . . . . . . . . . . . . . . . .
-                        . . . . . . . . . . . . . . . .
-                        . . . . . . . . . . . . . . . .
-                        . . . . . . . . . . . . . . . .
-                        . . . . . . . . . . . . . . . .
-                        . . . . . . . . . . . . . . . .
-                        . . . . . . . 4 4 . . . . . . .
-                        . . . . . . 4 4 4 4 . . . . . .
-                        . . . . . . 4 4 4 4 . . . . . .
-                        . . . . . . . 4 4 . . . . . . .
-                        . . . . . . . . . . . . . . . .
-                        . . . . . . . . . . . . . . . .
-                        . . . . . . . . . . . . . . . .
-                        . . . . . . . . . . . . . . . .
-                        . . . . . . . . . . . . . . . .
-                        . . . . . . . . . . . . . . . .
-                    `, value, 0, 0)
-
-                    scene.cameraShake(3, 100)
-                    spriteutils.setVelocityAtAngle(enemy_projectile, spriteutils.angleFrom(value, playerController), 100)
-                    scaling.scaleByPixels(value, 4, ScaleDirection.Horizontally, ScaleAnchor.Middle)
-                    scaling.scaleByPixels(value, 4, ScaleDirection.Vertically, ScaleAnchor.Middle)
-                    timer.after(1000, function () {
-                        scaling.scaleToPixels(value, 17, ScaleDirection.Horizontally, ScaleAnchor.Middle)
-                        scaling.scaleToPixels(value, 17, ScaleDirection.Vertically, ScaleAnchor.Middle)
-                    })
-                })
-            }
-        }
-
-    } else {
-        for (let value of sprites.allOfKind(SpriteKind.Projectile)) {
-            sprites.destroy(value)
-        }
-    }
-
-})
-
-function playerDie() {
-    playerDied = true
-
-    let bloodEffect = extraEffects.createSingleColorSpreadEffectData(2, ExtraEffectPresetShape.Spark)
-    bloodEffect.gravity = 200
-    sprites.destroy(playerController)
-
-    timer.throttle("Die_Splat", 500, function () {
-        extraEffects.createSpreadEffectAt(bloodEffect, playerController.x, playerController.y, 100, 80, 30)
-
-        scene.cameraShake(5, 200)
-    })
-
-    timer.after(750, function () {
-        playerController = sprites.create(assets.image`myImage1`, SpriteKind.Player)
-        tiles.placeOnRandomTile(playerController,assets.tile`blueRespawn`)
-        playerDied = false
-
-        scene.cameraFollowSprite(cameraController)
-
-    })
-
-}
-
-if (!playerDied) {
-    scene.onOverlapTile(SpriteKind.Player, img`
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . . . 4 4 . . . . . . .
-        . . . . . . 4 4 4 4 . . . . . .
-        . . . . . 4 4 4 4 4 4 . . . . .
-        . . . . 4 4 4 f f 4 4 4 . . . .
-        . . . 4 4 4 f f f f 4 4 4 . . .
-        . . 4 4 4 f f f f f f 4 4 4 . .
-        . 4 4 4 f f f f f f f f 4 4 4 .
-        4 4 4 f f f f f f f f f f 4 4 4
-        4 4 f f f f f f f f f f f f 4 4
-    `, function (sprite: Sprite, location: tiles.Location) {
-        playerDie()
-    })
-
-    sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite: Sprite, otherSprite: Sprite) {
-        playerDie()
-    })
-
-    sprites.onOverlap(SpriteKind.Player, SpriteKind.Projectile, function (sprite: Sprite, otherSprite: Sprite) {
-        playerDie()
-    })
-
-    scene.onHitWall(SpriteKind.Projectile, function (sprite: Sprite, location: tiles.Location) {
-        timer.throttle("projectileExplode", 100, function () {
-            extraEffects.createSpreadEffectAt(extraEffects.createSingleColorSpreadEffectData(2, ExtraEffectPresetShape.Spark), sprite.x, sprite.y, 30)
-
-        })
-    })
-
-}
-
-scene.onOverlapTile(SpriteKind.Player, img`
-    . . . . . . . 9 9 . . . . . . .
-    . . . . . . 9 9 9 9 . . . . . .
-    . . . . . 9 9 9 9 9 9 . . . . .
-    . . . . 9 9 9 f f 9 9 9 . . . .
-    . . . 9 9 9 f f f f 9 9 9 . . .
-    . . 9 9 9 f f 9 9 f f 9 9 9 . .
-    . 9 9 9 f f 9 9 9 9 f f 9 9 9 .
-    9 9 9 f f 9 9 9 9 9 9 f f 9 9 9
-    9 9 f f 9 9 9 f f 9 9 9 f f 9 9
-    f f f 9 9 9 f f f f 9 9 9 f f f
-    f f 9 9 9 f f f f f f 9 9 9 f f
-    f 9 9 9 f f f f f f f f 9 9 9 f
-    9 9 9 f f f f f f f f f f 9 9 9
-    9 9 f f f f f f f f f f f f 9 9
-    f f f f f f f f f f f f f f f f
-    f f f f f f f f f f f f f f f f
-`, function (sprite: Sprite, location: tiles.Location) {
-    let jumpEffect = extraEffects.createSingleColorSpreadEffectData(9, ExtraEffectPresetShape.Twinkle)
-
-    playerController.vy = jumpVelocity * 1.5
-
-    jumpEffect.extraVY = -40
-
-    timer.throttle("action", 600, function () {
-        extraEffects.createSpreadEffectAt(jumpEffect, playerController.x, playerController.y, 1000)
-    })
-})
-
-characterAnimations.runFrames(playerController, [img`
+    characterAnimations.runFrames(playerController, [img`
     f . . . . . . . . . . . . f
     . . . . . . . . . . . . . .
     . . . . . . . . . . . . . .
@@ -857,7 +184,7 @@ characterAnimations.runFrames(playerController, [img`
     f....111111....f
 `], 100, characterAnimations.rule(Predicate.MovingUp))
 
-characterAnimations.runFrames(playerController, [img`
+    characterAnimations.runFrames(playerController, [img`
     .....111111.....
     .....111111.....
     .....111111.....
@@ -900,27 +227,251 @@ characterAnimations.runFrames(playerController, [img`
     ....11111111....
     f...11111111...f
 `, img`
-        . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        . . . 1 1 1 1 1 1 1 1 . . .
-        f . . 1 1 1 1 1 1 1 1 . . f
-    `], 100, characterAnimations.rule(Predicate.MovingDown))
+    . . . . . . . . . . . . . .
+    . . . . . . . . . . . . . .
+    . . . . . . . . . . . . . .
+    . . . . . . . . . . . . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    . . . 1 1 1 1 1 1 1 1 . . .
+    f . . 1 1 1 1 1 1 1 1 . . f
+`], 100, characterAnimations.rule(Predicate.MovingDown))
+
+
+    //environment interaction
+    if (!controller.player1.isPressed(ControllerButton.Down)) {
+        if (playerController.vy >= 0) {
+            if (playerController.tileKindAt(TileDirection.Bottom, assets.tile`PlatformMiddle`)) {
+                tileUtil.setWalls(assets.tile`PlatformMiddle`, true)
+            } else {
+                tileUtil.setWalls(assets.tile`PlatformMiddle`, false)
+            }
+        } else {
+            tileUtil.setWalls(assets.tile`PlatformMiddle`, false)
+        }
+    } else {
+        tileUtil.setWalls(assets.tile`PlatformMiddle`, false)
+    }
+
+    if (!controller.player1.isPressed(ControllerButton.Down)) {
+        if (playerController.vy >= 0) {
+            if (playerController.tileKindAt(TileDirection.Bottom, assets.tile`PlatformLeft`)) {
+                tileUtil.setWalls(assets.tile`PlatformLeft`, true)
+            } else {
+                tileUtil.setWalls(assets.tile`PlatformLeft`, false)
+            }
+        } else {
+            tileUtil.setWalls(assets.tile`PlatformLeft`, false)
+        }
+    } else {
+        tileUtil.setWalls(assets.tile`PlatformLeft`, false)
+    }
+
+    if (!controller.player1.isPressed(ControllerButton.Down)) {
+        if (playerController.vy >= 0) {
+            if (playerController.tileKindAt(TileDirection.Bottom, assets.tile`PlatformRight`)) {
+                tileUtil.setWalls(assets.tile`PlatformRight`, true)
+            } else {
+                tileUtil.setWalls(assets.tile`PlatformRight`, false)
+            }
+        } else {
+            tileUtil.setWalls(assets.tile`PlatformRight`, false)
+        }
+    } else {
+        tileUtil.setWalls(assets.tile`PlatformRight`, false)
+    }
+    //camera control
+
+    if (!playerImmobile) {
+
+        timer.throttle("camTransition", 500, function() {
+            if (playerController.x > cameraController.right) {
+                let currentPosX: number = cameraController.x
+                let targetPosX: number = currentPosX + (screen.width)
+                spriteutils.moveTo(cameraController, spriteutils.pos(targetPosX, cameraController.y), 500)
+
+            } else if (playerController.x < cameraController.left) {
+                let currentPosX: number = cameraController.x
+                let targetPosX: number = currentPosX - (screen.width)
+                spriteutils.moveTo(cameraController, spriteutils.pos(targetPosX, cameraController.y), 500)
+            }
+        })
+
+    }
+    cameraController.y = playerController.y
+
+
+
+
+})
+
+game.onUpdateInterval(50, function () {
+
+    if (!playerController.isHittingTile(CollisionDirection.Bottom)) {
+
+
+        if (playerController.vy > 0) {
+            jumping = true
+            falling = false
+        } else if (playerController.vy < 0) {
+            jumping = false
+            falling = true
+        } else if (playerController.vy == 0) {
+            jumping = false
+            falling = false
+        }
+
+    }
+
+    if (!jumping && falling && (playerController.vx != 0)) {
+        characterAnimations.runFrames(playerController, 
+        [assets.image`HittingWallDown_01`,
+         assets.image`Hitting_Wall_Down_02`, 
+         assets.image`HittingWallDown_03`,
+         assets.image`HittingWallDown_04`,
+         assets.image`HittingWallDown_05`], 50, characterAnimations.rule(Predicate.HittingWallDown))
+
+    }
+
+    if (!playerImmobile) {
+        for (let value of sprites.allOfKind(SpriteKind.StationaryProjectileEnemy)) {
+
+            if (spriteutils.distanceBetween(value, playerController) < 80) {
+
+                timer.throttle("StationaryProjectileEnemy_Fire", 2000, function () {
+                    let enemy_projectile = sprites.createProjectileFromSprite(assets.image`EnemyProjectile`, value, 0, 0)
+
+                    scene.cameraShake(3, 100)
+                    spriteutils.setVelocityAtAngle(enemy_projectile, spriteutils.angleFrom(value, playerController), 100)
+                    scaling.scaleByPixels(value, 4, ScaleDirection.Horizontally, ScaleAnchor.Middle)
+                    scaling.scaleByPixels(value, 4, ScaleDirection.Vertically, ScaleAnchor.Middle)
+                    timer.after(1000, function () {
+                        scaling.scaleToPixels(value, 17, ScaleDirection.Horizontally, ScaleAnchor.Middle)
+                        scaling.scaleToPixels(value, 17, ScaleDirection.Vertically, ScaleAnchor.Middle)
+                    })
+                })
+            }
+        }
+
+    } else {
+        for (let value of sprites.allOfKind(SpriteKind.Projectile)) {
+            sprites.destroy(value)
+        }
+    }
+
+})
+
+function playerDie() {
+    playerImmobile = true
+    sprites.destroyAllSpritesOfKind(SpriteKind.Player)
+    sprites.destroyAllSpritesOfKind(SpriteKind.CameraSprite)
+
+
+    let bloodEffect = extraEffects.createSingleColorSpreadEffectData(2, ExtraEffectPresetShape.Spark)
+    bloodEffect.gravity = 200
+    timer.throttle("Die_Splat", 750, function () {
+        extraEffects.createSpreadEffectAt(bloodEffect, playerController.x, playerController.y, 100, 80, 30)
+
+        scene.cameraShake(5, 200)
+    })
+
+    timer.after(750, function () {
+        sprites.destroyAllSpritesOfKind(SpriteKind.CameraSprite)
+        sprites.destroyAllSpritesOfKind(SpriteKind.Player)
+        cameraController.setFlag(SpriteFlag.Invisible, true)
+
+        playerController = sprites.create(assets.image`PlayerSprite`, SpriteKind.Player)
+        tiles.placeOnRandomTile(playerController,assets.tile`blueRespawn`)
+        playerImmobile = false
+
+        scene.cameraFollowSprite(cameraController)
+
+    })
+
+}
+
+function initLevel() {
+    
+    tiles.setCurrentTilemap(levelSet[nextLevel])
+    if (nextLevel == levelSet.length) {
+        game.over(true)
+    }
+
+    timer.after(500, function () {
+        color.startFadeFromCurrent(color.originalPalette, 500)
+        tiles.placeOnRandomTile(playerController, assets.tile`blueRespawn`)
+        playerController.vy += 1 * ppu
+        timer.after(1000, function () {
+            playerImmobile = false
+        })
+    })
+
+    cameraController.x = 80
+    cameraController.y = 60
+
+    tileUtil.createSpritesOnTiles(assets.tile`SpikeAxle`,
+        assets.image`SpikeBall`, SpriteKind.Enemy)
+    
+    tileUtil.createSpritesOnTiles(assets.tile`MovingSpikeAxle`,
+        assets.image`SpikeBall`, SpriteKind.MovingMeleeEnemy)
+
+    tileUtil.createSpritesOnTiles(assets.tile`StationaryProjectileAxle`,
+        assets.image`ProjectileEnemy`, SpriteKind.StationaryProjectileEnemy)
+    
+    tileUtil.createSpritesOnTiles(assets.tile`MovingProjectileAxle`,
+        assets.image`MovingProjectileEnemy`, SpriteKind.MovingProjectileEnemy)
+
+
+    nextLevel += 1
+}
+
+if (!playerImmobile) {
+    scene.onOverlapTile(SpriteKind.Player,assets.image`GroundSpike`, function (sprite: Sprite, location: tiles.Location) {
+        playerDie()
+    })
+
+    sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite: Sprite, otherSprite: Sprite) {
+        playerDie()
+    })
+
+    sprites.onOverlap(SpriteKind.Player, SpriteKind.Projectile, function (sprite: Sprite, otherSprite: Sprite) {
+        playerDie()
+    })
+
+    scene.onHitWall(SpriteKind.Projectile, function (sprite: Sprite, location: tiles.Location) {
+        timer.throttle("projectileExplode", 100, function () {
+            extraEffects.createSpreadEffectAt(extraEffects.createSingleColorSpreadEffectData(2, ExtraEffectPresetShape.Spark), sprite.x, sprite.y, 30)
+
+        })
+    })
+
+}
+
+scene.onOverlapTile(SpriteKind.Player,assets.image`JumpBoost`, function (sprite: Sprite, location: tiles.Location) {
+    let jumpEffect = extraEffects.createSingleColorSpreadEffectData(9, ExtraEffectPresetShape.Twinkle)
+
+    playerController.vy = jumpVelocity * 1.5
+
+    jumpEffect.extraVY = -40
+
+    timer.throttle("action", 600, function () {
+        extraEffects.createSpreadEffectAt(jumpEffect, playerController.x, playerController.y, 1000)
+    })
+})
+
+
 
 scene.onOverlapTile(SpriteKind.Player, assets.tile`redRespawn`
     , function (sprite: Sprite, location: tiles.Location) {
@@ -935,3 +486,30 @@ scene.onOverlapTile(SpriteKind.Player, assets.tile`redRespawn`
         })
     })
 
+scene.onOverlapTile(SpriteKind.Player, assets.tile`ConnectorRight_1`, function(sprite: Sprite, location: tiles.Location) {
+    color.startFadeFromCurrent(color.Black, 500)
+    playerImmobile = true
+    initLevel()
+})
+
+controller.B.onEvent(ControllerButtonEvent.Pressed, function() {
+    color.startFadeFromCurrent(color.Black, 500)
+    playerImmobile = true
+    timer.after(500, function() {
+        playerDie()
+        initLevel()
+    })
+
+})
+
+sprites.onCreated(SpriteKind.MovingProjectileEnemy, function(sprite: Sprite) {
+    
+})
+
+sprites.onCreated(SpriteKind.MovingMeleeEnemy, function (sprite: Sprite) {
+    sprite.setVelocity(32, 0)
+})
+
+scene.onOverlapTile(SpriteKind.MovingMeleeEnemy, assets.tile`RedirectBlock`, function(sprite: Sprite, location: tiles.Location) {
+    sprite.setVelocity(sprite.vx * -1, 0)
+})
