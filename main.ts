@@ -8,7 +8,8 @@ tiles.setCurrentTilemap(tilemap`level0`)
 scene.setBackgroundColor(15)
 
 let levelSet =[tilemap`level0`,
-tilemap`level1`]
+tilemap`level1`,
+tilemap`level2`]
 let nextLevel: number = 0
 
 let ppu = 16
@@ -42,9 +43,6 @@ cameraController.setFlag(SpriteFlag.Invisible, true)
 scene.cameraFollowSprite(cameraController)
 
 initLevel()
-
-console.log(cameraController.x)
-console.log(cameraController.y)
 
 namespace SpriteKind {
     export const StationaryProjectileEnemy = SpriteKind.create()
@@ -300,16 +298,46 @@ game.onUpdate(function () {
             if (playerController.x > cameraController.right) {
                 let currentPosX: number = cameraController.x
                 let targetPosX: number = currentPosX + (screen.width)
-                spriteutils.moveTo(cameraController, spriteutils.pos(targetPosX, cameraController.y), 500)
+                spriteutils.moveTo(cameraController, spriteutils.pos(Math.round(targetPosX), cameraController.y), 500)
+                if (cameraController.x != targetPosX) {
+                    cameraTransitioning = true
+                } else {
+                    cameraTransitioning = false
+                }
 
             } else if (playerController.x < cameraController.left) {
                 let currentPosX: number = cameraController.x
                 let targetPosX: number = currentPosX - (screen.width)
-                spriteutils.moveTo(cameraController, spriteutils.pos(targetPosX, cameraController.y), 500)
+                spriteutils.moveTo(cameraController, spriteutils.pos(Math.round(targetPosX), cameraController.y), 500)
+                if (cameraController.x != targetPosX) {
+                    cameraTransitioning = true
+                } else {
+                    cameraTransitioning = false
+                }
+        
             }
+            
         })
 
     }
+
+    let remainder = Math.round(cameraController.x % 160)
+
+
+
+    if (remainder != 80 && !cameraTransitioning) {
+
+        if (remainder < 80) {
+            spriteutils.moveTo(cameraController, spriteutils.pos(playerController.x, cameraController.y), 100)
+
+        } else if (remainder > 80) {
+            spriteutils.moveTo(cameraController, spriteutils.pos(playerController.x, cameraController.y), 100)
+
+        }
+    }
+
+    console.log(Math.round(cameraController.x % 160))
+
     cameraController.y = playerController.y
 
 
@@ -395,20 +423,23 @@ function playerDie() {
         playerController = sprites.create(assets.image`PlayerSprite`, SpriteKind.Player)
         tiles.placeOnRandomTile(playerController,assets.tile`blueRespawn`)
         playerImmobile = false
+        scene.centerCameraAt(playerController.x, playerController.y)
 
         scene.cameraFollowSprite(cameraController)
+        
 
     })
 
 }
 
 function initLevel() {
-    
-    tiles.setCurrentTilemap(levelSet[nextLevel])
-    if (nextLevel == levelSet.length) {
-        game.over(true)
-    }
-
+    sprites.destroyAllSpritesOfKind(SpriteKind.Enemy)
+    sprites.destroyAllSpritesOfKind(SpriteKind.MovingMeleeEnemy)
+    sprites.destroyAllSpritesOfKind(SpriteKind.StationaryProjectileEnemy)
+    sprites.destroyAllSpritesOfKind(SpriteKind.MovingProjectileEnemy)
+    timer.throttle("tilesetChange", 500, function() {
+        tiles.setCurrentTilemap(levelSet[nextLevel])
+    })
     timer.after(500, function () {
         color.startFadeFromCurrent(color.originalPalette, 500)
         tiles.placeOnRandomTile(playerController, assets.tile`blueRespawn`)
@@ -418,21 +449,26 @@ function initLevel() {
         })
     })
 
+    if (nextLevel == levelSet.length) {
+        game.over(true)
+    }
     cameraController.x = 80
     cameraController.y = 60
 
-    tileUtil.createSpritesOnTiles(assets.tile`SpikeAxle`,
-        assets.image`SpikeBall`, SpriteKind.Enemy)
-    
-    tileUtil.createSpritesOnTiles(assets.tile`MovingSpikeAxle`,
-        assets.image`SpikeBall`, SpriteKind.MovingMeleeEnemy)
+    if (nextLevel < 3) {
+        tileUtil.createSpritesOnTiles(assets.tile`SpikeAxle`,
+            assets.image`SpikeBall`, SpriteKind.Enemy)
 
-    tileUtil.createSpritesOnTiles(assets.tile`StationaryProjectileAxle`,
-        assets.image`ProjectileEnemy`, SpriteKind.StationaryProjectileEnemy)
-    
-    tileUtil.createSpritesOnTiles(assets.tile`MovingProjectileAxle`,
-        assets.image`MovingProjectileEnemy`, SpriteKind.MovingProjectileEnemy)
+        tileUtil.createSpritesOnTiles(assets.tile`MovingSpikeAxle`,
+            assets.image`SpikeBall`, SpriteKind.MovingMeleeEnemy)
 
+        tileUtil.createSpritesOnTiles(assets.tile`StationaryProjectileAxle`,
+            assets.image`ProjectileEnemy`, SpriteKind.StationaryProjectileEnemy)
+
+        tileUtil.createSpritesOnTiles(assets.tile`MovingProjectileAxle`,
+            assets.image`MovingProjectileEnemy`, SpriteKind.MovingProjectileEnemy)
+
+    }
 
     nextLevel += 1
 }
@@ -456,6 +492,8 @@ if (!playerImmobile) {
 
         })
     })
+
+    
 
 }
 
@@ -489,16 +527,16 @@ scene.onOverlapTile(SpriteKind.Player, assets.tile`redRespawn`
 scene.onOverlapTile(SpriteKind.Player, assets.tile`ConnectorRight_1`, function(sprite: Sprite, location: tiles.Location) {
     color.startFadeFromCurrent(color.Black, 500)
     playerImmobile = true
+    playerDie()
     initLevel()
 })
 
 controller.B.onEvent(ControllerButtonEvent.Pressed, function() {
     color.startFadeFromCurrent(color.Black, 500)
     playerImmobile = true
-    timer.after(500, function() {
-        playerDie()
-        initLevel()
-    })
+
+    playerDie()
+    initLevel()
 
 })
 
@@ -507,9 +545,27 @@ sprites.onCreated(SpriteKind.MovingProjectileEnemy, function(sprite: Sprite) {
 })
 
 sprites.onCreated(SpriteKind.MovingMeleeEnemy, function (sprite: Sprite) {
-    sprite.setVelocity(32, 0)
+        sprite.setVelocity(32, 0)
 })
 
 scene.onOverlapTile(SpriteKind.MovingMeleeEnemy, assets.tile`RedirectBlock`, function(sprite: Sprite, location: tiles.Location) {
-    sprite.setVelocity(sprite.vx * -1, 0)
+    timer.throttle("action", 100, function() {
+        sprite.setVelocity(sprite.vx * -1, 0)
+
+    })
 })
+
+function initEnemies() {
+    tileUtil.createSpritesOnTiles(assets.tile`SpikeAxle`,
+        assets.image`SpikeBall`, SpriteKind.Enemy)
+
+    tileUtil.createSpritesOnTiles(assets.tile`MovingSpikeAxle`,
+        assets.image`SpikeBall`, SpriteKind.MovingMeleeEnemy)
+
+    tileUtil.createSpritesOnTiles(assets.tile`StationaryProjectileAxle`,
+        assets.image`ProjectileEnemy`, SpriteKind.StationaryProjectileEnemy)
+
+    tileUtil.createSpritesOnTiles(assets.tile`MovingProjectileAxle`,
+        assets.image`MovingProjectileEnemy`, SpriteKind.MovingProjectileEnemy)
+
+}
