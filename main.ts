@@ -42,10 +42,6 @@ cameraController.setFlag(SpriteFlag.Invisible, true)
 scene.cameraFollowSprite(cameraController)
 
 initLevel()
-
-console.log(cameraController.x)
-console.log(cameraController.y)
-
 namespace SpriteKind {
     export const StationaryProjectileEnemy = SpriteKind.create()
     export const DirectionalProjectileEnemy = SpriteKind.create()
@@ -74,7 +70,6 @@ game.onUpdate(function () {
     }
 
     //apply jump
-
     controller.up.onEvent(ControllerButtonEvent.Released, function () {
         if (playerController.vy < -30) {
             playerController.vy = cutJumpHeight
