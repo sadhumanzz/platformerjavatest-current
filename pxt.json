@@ -15,7 +15,8 @@
         "pxt-arcade-image-transform": "github:robo-technical-group/pxt-arcade-image-transform#v1.0.9",
         "arcade-tile-util": "github:microsoft/arcade-tile-util#v1.1.0",
         "arcade-screen-transitions": "github:riknoll/arcade-screen-transitions#v0.0.5",
-        "Color Fading": "github:jwunderl/pxt-color#v0.2.3"
+        "Color Fading": "github:jwunderl/pxt-color#v0.2.3",
+        "Sprite Grid": "github:microsoft/arcade-grid#v1.3.0"
     },
     "files": [
         "main.ts",
@@ -25,7 +26,8 @@
         "images.g.ts",
         "tilemap.g.jres",
         "tilemap.g.ts",
-        "linear_interpolation.ts"
+        "linear_interpolation.ts",
+        "inventoryMenu.ts"
     ],
     "testFiles": [
         "test.ts"
