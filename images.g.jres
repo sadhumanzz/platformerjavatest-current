@@ -89,6 +89,26 @@
         "mimeType": "image/x-mkcd-f4",
         "displayName": "cursorSprite"
     },
+    "image19": {
+        "data": "hwQQABAAAAAAAAAAAAAAAAAAAAAAMDMDAAAAAAAzIwIAAAAAMDMCAAAAAAAwIwAAADMCADAjAgAwMyMAADMCADAzMwIgMyIAAAAzAyAzIwAAADAjMjMjAAAAMzMzMSMCAAAzMTMzIwIAADMTMzMjAgAAMjMzMyICAAAgMzMiIgAAAAAAAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "Stomach"
+    },
+    "image20": {
+        "data": "hwQQABAAAAAAAAAAAAAAAAAAAAAAEBEBAAAAAAAxEwEAAAAAEDMBAAAAAAAQEwAAABEBABAjAQAQMxMAADEBABARMwEQMxIAAAAxARAzEwAAABATMTMTAAAAMTMzMSMBAAAxMTMzIwEAADETMzMjAQAAMTMzMyIBAAAQEREREQAAAAAAAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "Selected Stomach"
+    },
+    "image21": {
+        "data": "hwQQABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "SelectedStomach"
+    },
+    "image22": {
+        "data": "hwQQABAAAAAAAAAAAAAAAAAAACMzIgAAAAAwMjMjAgAAACMjMiMiAAAwMjIjMyIAADAyIyMzIgAAICIyMiIiAAAwMjIjIyMAADAyMyMjIwIAICIiIyMiIgAwMjMyIiMjADAyMiMjIzMAACMiMiMjMwAAIDMyMiIDAAAAMiMjAgAAAAAgIiIAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "Brain"
+    },
     "anim1": {
         "namespace": "myAnimations",
         "id": "anim1",
