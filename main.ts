@@ -8,7 +8,7 @@ tiles.setCurrentTilemap(tilemap`level0`)
 scene.setBackgroundColor(15)
 
 let levelSet =[tilemap`level0`,
-tilemap`level1`]
+tilemap`level1`, tilemap`level2`]
 let nextLevel: number = 0
 
 let ppu = 16
@@ -393,7 +393,7 @@ function playerDie() {
 function initLevel() {
     
     tiles.setCurrentTilemap(levelSet[nextLevel])
-    if (nextLevel == levelSet.length) {
+    if (nextLevel == (levelSet.length)) {
         game.over(true)
     }
 
